@@ -2,6 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [clojure.string             :refer [join split]]
             [clojure.set                :refer [union intersection]]
+            [clojure.core.memoize       :as    memoize]
             [globber.glob               :refer [glob]]))
 
 (defprotocol MetricIndex
@@ -66,9 +67,17 @@
   (let [elems (split path #"\.")]
     (map-indexed vector elems)))
 
+(def by-pos-memo
+  (memoize/ttl (fn [index pos]
+    (by-pos index pos)) :ttl/threshold 15000))
+
+(def by-segment-memo
+  (memoize/ttl (fn [index pos segment]
+                 (by-segment index pos segment)) :ttl/threshold 15000))
+
 (defn by-segments
   [index pos segments]
-  (mapcat (partial by-segment index pos) segments))
+  (mapcat (partial by-segment-memo index pos) segments))
 
 (defn register!
   [index path]
@@ -98,7 +107,7 @@
         length   (count segments)
         pred     (partial (if leaves? = <=) length)
         matches  (for [[pos pattern] segments]
-                   (->> (by-pos index pos)
+                   (->> (by-pos-memo index pos)
                         (glob pattern)
                         (by-segments index pos)
                         (filter (comp pred second))

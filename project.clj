@@ -10,6 +10,7 @@
   :dependencies [[org.clojure/clojure           "1.8.0-beta1"]
                  [org.clojure/tools.logging     "0.3.1"]
                  [org.clojure/tools.cli         "0.3.3"]
+                 [org.clojure/core.memoize      "0.5.8"]
                  [com.stuartsierra/component    "0.3.0"]
                  [spootnik/pickler              "0.1.6"]
                  [spootnik/unilog               "0.7.10"]
